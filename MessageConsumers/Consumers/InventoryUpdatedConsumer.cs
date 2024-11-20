@@ -17,3 +17,4 @@ public class InventoryUpdatedConsumer : IConsumer<InventoryUpdated>
         await notificationService.NotifyInventoryUpdated(context.Message.ProductId);
     }
 }
+

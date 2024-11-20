@@ -8,9 +8,24 @@ var builder = WebApplication.CreateBuilder();
 
 builder.Services.AddMassTransit(x =>
 {
-    x.AddConsumer<OrderCreatedConsumer>();
-    x.AddConsumer<InventoryUpdatedConsumer>();
-    x.AddConsumer<OutOfStockConsumer>();
+    x.AddConsumer<OrderCreatedConsumer>(configurator =>
+    {
+        configurator.UseMessageRetry(r => r.Interval(3, TimeSpan.FromSeconds(5)));
+    });
+
+    x.AddConsumer<InventoryUpdatedConsumer>(configurator =>
+    {
+        configurator.UseMessageRetry(r => r.Interval(3, TimeSpan.FromSeconds(5))); 
+    });
+
+    x.AddConsumer<OutOfStockConsumer>(configurator =>
+    {
+        configurator.UseMessageRetry(r => r.Interval(3, TimeSpan.FromSeconds(5))); 
+    });
+
+    x.AddConsumer<OrderCreatedFaultConsumer>();
+    x.AddConsumer<InventoryUpdatedFaultConsumer>();
+    x.AddConsumer<OutOfStockFaultConsumer>();
 
     x.UsingRabbitMq((context, cfg) =>
     {
@@ -20,25 +35,11 @@ builder.Services.AddMassTransit(x =>
             h.Password("guest");
         });
 
-        cfg.ReceiveEndpoint("OrderCreated", e =>
+        cfg.ReceiveEndpoint("fault-queue", e =>
         {
-            e.UseMessageRetry(r => r.Exponential(5, TimeSpan.FromSeconds(1), TimeSpan.FromMinutes(1), TimeSpan.FromSeconds(5)));
-
-            e.ConfigureConsumer<OrderCreatedConsumer>(context);
-        });
-        
-        cfg.ReceiveEndpoint("InventoryUpdated", e =>
-        {
-            e.UseMessageRetry(r => r.Exponential(5, TimeSpan.FromSeconds(1), TimeSpan.FromMinutes(1), TimeSpan.FromSeconds(5)));
-
-            e.ConfigureConsumer<InventoryUpdatedConsumer>(context);
-        }); 
-
-        cfg.ReceiveEndpoint("OutOfStock", e =>
-        {
-            e.UseMessageRetry(r => r.Exponential(5, TimeSpan.FromSeconds(1), TimeSpan.FromMinutes(1), TimeSpan.FromSeconds(5)));
-
-            e.ConfigureConsumer<OutOfStockConsumer>(context);
+            e.ConfigureConsumer<OrderCreatedFaultConsumer>(context);
+            e.ConfigureConsumer<InventoryUpdatedFaultConsumer>(context);
+            e.ConfigureConsumer<OutOfStockFaultConsumer>(context);
         });
 
         cfg.ConfigureEndpoints(context);

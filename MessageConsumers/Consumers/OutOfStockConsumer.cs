@@ -18,3 +18,4 @@ public class OutOfStockConsumer : IConsumer<OutOfStock>
         await this.notificationService.NotifyOutofStock(context.Message.ProductId);
     }
 }
+
