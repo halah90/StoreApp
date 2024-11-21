@@ -1,4 +1,4 @@
-This is a sample project to demonstrate the communication between services that is driven by events. I used MassTransit RabbitMQ to build this project . 
+This is a sample project to demonstrate the communication between services that are driven by events. I used MassTransit RabbitMQ to build this project . 
 The project is divided to api part which is used to create an order.  
 The order service is responsible for publish the createdOrder event to queue.
 When the consumer of createdOrder event consumes message from the queue, then calls inventory services in order to update or check out of stock status.
